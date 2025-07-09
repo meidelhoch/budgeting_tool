@@ -2,7 +2,6 @@ from google import genai
 import json
 import os
 from dotenv import load_dotenv
-print(os.environ.get("GEMINI_API_KEY"))
 
 load_dotenv()
 
