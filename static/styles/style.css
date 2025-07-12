@@ -1,0 +1,54 @@
+/* Reset some basic styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --navbar-bg: #014421;
+    --navbar-text: #ffffff;
+    --navbar-hover: #c8e6c9;
+    --navbar-hover-text: #000000;
+    --navbar-active-bg: #a5d6a7;
+    --navbar-active-text: #000000;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Navbar styles */
+header {
+    background-color: var(--navbar-bg);
+    padding: 1rem 2rem;
+}
+
+.navbar a {
+  color: var(--navbar-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+}
+
+/* Hover effect */
+.navbar a:hover {
+  background-color: var(--navbar-hover);
+    color: var(--navbar-hover-text);
+}
+
+/* Active page */
+.navbar a.active {
+  background-color: var(--navbar-active-bg);
+  color: var(--navbar-active-text);
+}
+
+/* Content area */
+main {
+    padding: 2rem;
+}

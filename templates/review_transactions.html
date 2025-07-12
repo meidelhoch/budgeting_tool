@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Income{% endblock %}
+
+{% block content %}
+<h1>Review Transactions</h1>
+<form action="{{ url_for('save_transactions_route') }}" method="POST">
+<table class="table table-bordered">
+    <thead class="thead-light">
+        <tr>
+            {% for key in transactions[0].keys() %}
+            <th>{{ key.capitalize() }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+        <tr class="{% if transaction.category == 'Other' %}table-warning{% endif %}">
+            {% set row_index = loop.index0 %}  {# Save row index for input names #}
+
+            {% for key, value in transaction.items() %}
+            <td style="margin: 0px;">
+                {% if key == "category" %}
+                <select name="category_{{ row_index }}" class="form-select">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if cat == value %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                {% if key == "amount" %}
+                    {{ value | money }}
+                {% else %}
+                    {{ value }}
+                {% endif %}
+                {% endif %}
+            </td>
+        {% endfor %}
+
+        <!-- Hidden fields to retain full row -->
+        <input type="hidden" name="date_{{ row_index }}" value="{{ transaction.date }}">
+        <input type="hidden" name="description_{{ row_index }}" value="{{ transaction.description }}">
+        <input type="hidden" name="amount_{{ row_index }}" value="{{ transaction.amount }}">
+        <input type="hidden" name="card_{{ row_index }}" value="{{ transaction.card }}">
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+<input type="hidden" name="total_rows" value="{{ transactions|length }}">
+<button type="submit" class="btn btn-primary">Submit Changes</button>
+</form>
+{% endblock %}
+
