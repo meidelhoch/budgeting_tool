@@ -4,7 +4,7 @@ import pandas as pd
 import psycopg
 import os
 from dotenv import load_dotenv
-from db_management.transactions import save_transactions
+from db_management.transactions import save_transactions, get_all_transactions
 
 
 load_dotenv()
@@ -15,7 +15,20 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 
-CATEGORIES = ["Grocery", "Dining", "Shopping", "Transportation", "Housing", "Entertainment", "Travel", "Other"]
+CATEGORIES = {
+    'Grocery': 'cat-grocery',
+    'Dining': 'cat-dining',
+    'Shopping': 'cat-shopping',
+    'Transportation': 'cat-transportation',
+    'Housing': 'cat-housing',
+    'Entertainment': 'cat-entertainment',
+    'Travel': 'cat-travel',
+    'Medical': 'cat-medical',
+    'Wellness': 'cat-wellness',
+    'Gifts': 'cat-gifts',
+    'Other': 'cat-other',
+}
+
 
 
 app = Flask(__name__)
@@ -31,9 +44,18 @@ def money_format(value):
 def home():
     return render_template("home.html", active_page="home")
 
+@app.route("/budget")
+def budget():
+    return render_template("budget.html", active_page="budget")
+
 @app.route("/spending")
 def spending():
-    return render_template("spending.html", active_page="spending")
+    transactions = get_all_transactions()
+    transactions["net_amount"] = transactions["amount"] - transactions["reimbursement_amount"]
+    filtered_transactions = transactions[transactions["net_amount"] > 0]
+    display_transactions = filtered_transactions[["date", "description", "net_amount", "category", "card"]]
+
+    return render_template("spending.html", active_page="spending", transactions=display_transactions.to_dict(orient='records'), categories=CATEGORIES)
 
 @app.route("/income")
 def income():
@@ -60,6 +82,8 @@ def upload_file():
     for file, label in zip(uploaded_files, labels):
         if file and file.filename.endswith('.csv'):
             cleaned_data = clean_file(file, label)
+            cleaned_data["reimbursed"] = False
+            cleaned_data["reimbursement_amount"] = 0
             cleaned_data["card"] = label
             cleaned_dfs.append(cleaned_data)
             print(cleaned_data)
@@ -90,18 +114,37 @@ def save_transactions_route():
     updated_rows = []
 
     for i in range(total):
+        reimbursement_amount = request.form.get(f"reimbursement_amount_{i}", 0)
+        if reimbursement_amount == "":
+            reimbursement_amount = 0
+
+        reimbursement_status = request.form.get(f"reimbursed_{i}")
+        if reimbursement_status == "1":
+            reimbursement_status = True
+        else:
+            reimbursement_status = False
+        print(reimbursement_status)
         row = {
             "date": request.form.get(f"date_{i}"),
             "description": request.form.get(f"description_{i}"),
             "amount": float(request.form.get(f"amount_{i}")),
             "category": request.form.get(f"category_{i}"),
+            "reimbursed": reimbursement_status,
+            "reimbursement_amount": float(reimbursement_amount),
             "card": request.form.get(f"card_{i}")
         }
+        print(row)
         updated_rows.append(row)
 
-    save_transactions(pd.DataFrame(updated_rows))
+    if save_transactions(pd.DataFrame(updated_rows)):
+        return render_template("confirmation_page.html", message="Transactions saved successfully!")
+    else:
+        return render_template("confirmation_page.html", message="Failed to save transactions.")
 
-    return render_template("confirmation_page.html")
+
+@app.route("/manual-entry")
+def manual_entry():
+    return render_template("manual_entry.html", active_page="manual_entry")
 
 
 @app.route("/settings")

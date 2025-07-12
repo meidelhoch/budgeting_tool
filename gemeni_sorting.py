@@ -14,7 +14,7 @@ def categorize_transactions(df):
     response = client.models.generate_content(
         model="gemini-2.0-flash", contents= f"Please categorize the following descriptions in JSON format.\
     \
-    The categories I want you to use are: Grocery, Dining, Shopping, Transportation, Housing, Entertainment, Travel, Other: \
+    The categories I want you to use are: Grocery, Dining, Shopping, Transportation, Housing, Entertainment, Travel, Medical, Other: \
     Here is a description of each category: \
     Grocery: Transactions from grocery stores, liquor stores or markets, for food and household items.\
     Dining: Meals or food from restaurants, fast food, cafes, or delivery services.\
@@ -23,6 +23,9 @@ def categorize_transactions(df):
     Housing: Rent, mortgage, or home-related services.\
     Entertainment: Events, concerts, movie tickets, or subscriptions.\
     Travel: Flights, hotels, car rentals, or travel bookings.\
+    Medical: Healthcare expenses, including doctor visits, prescriptions, or medical supplies.\
+    Wellness: Expenses for personal care, education, wellness products and services.\
+    Gifts: Expenses for gifts or donations.\
     Other: Miscellaneous purchases that don't fit in other categories.\
     Please use Other when you are unsure of the category.\
     \

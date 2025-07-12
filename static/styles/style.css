@@ -52,3 +52,68 @@ header {
 main {
     padding: 2rem;
 }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 1em 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: sans-serif;
+    font-size: 0.9rem;
+  }
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+.cat-medical {
+    background-color: #b06464 !important;  /* red */
+}
+
+.cat-dining {
+    background-color: #ff9fc2 !important;  /* pink */
+}
+
+.cat-shopping {
+    background-color: #ffb374 !important;  /* orange */
+}
+
+.cat-transportation {
+    background-color: #fff895 !important;  /* yellow */
+}
+
+.cat-housing {
+    background-color: #b5fead !important;  /* light green */
+}
+
+.cat-wellness {
+    background-color: #69a864 !important;  /* dark green */
+}
+
+.cat-travel {
+    background-color: #A3E7F7 !important;  /* light blue */
+}
+
+.cat-grocery {
+    background-color: #5e9ef1 !important;  /* dark blue */
+}
+
+.cat-entertainment {
+    background-color: #e9d1ff !important;  /* light purple */
+}
+
+.cat-gifts {
+    background-color: #8a76b0 !important;  /* dark purple */
+}
+
+.cat-other {
+    background-color: #b2b2b2 !important;  /* light gray */
+}
+

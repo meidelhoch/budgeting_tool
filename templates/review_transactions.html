@@ -6,10 +6,14 @@
 <h1>Review Transactions</h1>
 <form action="{{ url_for('save_transactions_route') }}" method="POST">
 <table class="table table-bordered">
-    <thead class="thead-light">
+    <thead class="table-light">
         <tr>
             {% for key in transactions[0].keys() %}
-            <th>{{ key.capitalize() }}</th>
+                {% if key == "reimbursement_amount" %}
+                    <th>Reimbursement Amount</th>
+                {% else %}
+                    <th>{{ key.capitalize() }}</th>
+                {% endif %}
             {% endfor %}
         </tr>
     </thead>
@@ -19,27 +23,29 @@
             {% set row_index = loop.index0 %}  {# Save row index for input names #}
 
             {% for key, value in transaction.items() %}
-            <td style="margin: 0px;">
-                {% if key == "category" %}
-                <select name="category_{{ row_index }}" class="form-select">
-                    {% for cat in categories %}
-                        <option value="{{ cat }}" {% if cat == value %}selected{% endif %}>{{ cat }}</option>
-                    {% endfor %}
-                </select>
-                {% else %}
-                {% if key == "amount" %}
-                    {{ value | money }}
-                {% else %}
-                    {{ value }}
-                {% endif %}
-                {% endif %}
-            </td>
-        {% endfor %}
+                <td style="margin: 0px;">
+                    {% if key == "category" %}
+                        <select name="category_{{ row_index }}" class="form-select">
+                            {% for cat in categories.keys() %}
+                                <option value="{{ cat }}" {% if cat == value %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif key == "reimbursed" %}
+                        <input type="checkbox" class="form-check reimbursed-checkbox" name="reimbursed_{{ row_index }}" value="1" data-row="{{ row_index }}">
+                    {% elif key == "reimbursement_amount" %}
+                        <input type="number" class="form-control reimbursement-amount" name="reimbursement_amount_{{ row_index }}" value="{{ value | money }}" step=".01" min="0.01" data-row="{{ row_index }}">
+                    {% elif key == "amount" %}
+                        {{ value | money }}
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </td>
+            {% endfor %}
 
         <!-- Hidden fields to retain full row -->
         <input type="hidden" name="date_{{ row_index }}" value="{{ transaction.date }}">
         <input type="hidden" name="description_{{ row_index }}" value="{{ transaction.description }}">
-        <input type="hidden" name="amount_{{ row_index }}" value="{{ transaction.amount }}">
+        <input type="hidden" class="amount" name="amount_{{ row_index }}" value="{{ transaction.amount }}" data-row="{{ row_index }}">
         <input type="hidden" name="card_{{ row_index }}" value="{{ transaction.card }}">
     </tr>
     {% endfor %}
@@ -48,6 +54,8 @@
 
 <input type="hidden" name="total_rows" value="{{ transactions|length }}">
 <button type="submit" class="btn btn-primary">Submit Changes</button>
+<button type="button" class="btn btn-danger" onclick="window.location.href='{{ url_for('upload_statements') }}'">Cancel</button>
 </form>
+<script src="{{ url_for('static', filename='scripts/review_transactions.js') }}"></script>
 {% endblock %}
 

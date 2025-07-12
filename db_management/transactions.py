@@ -1,29 +1,51 @@
-from db_management.datasource import get_db_connection
+from db_management.datasource import get_db_engine
+import pandas as pd
+from sqlalchemy.sql import text as SQL_text
+
 
 def save_transactions(df):
-    with get_db_connection() as conn:
-        if conn is None:
-            print("Failed to connect to the database.")
-            return False
+    db_engine = get_db_engine() # Get the SQLAlchemy engine
+
+    if db_engine is None:
+        print("Failed to get database engine. Cannot save data.")
+        return False
+
+    if df.empty:
+        print("No data to save.")
+        return False
+
+    try:
+        df.to_sql('transactions', con=db_engine, if_exists='append', index=False)
         
-        if df.empty:
-            print("No data to save.")
-            return False
-        
-        with conn.cursor() as cursor:
-            # Build insert query with placeholders
-            data = [tuple(row) for row in df.itertuples(index=False)]
+        print(f"Successfully saved {len(df)} rows into the transactions table.")
+        return True
+    except Exception as e:
+        print(f"Error saving data to transactions table: {e}")
+        # pandas.to_sql handles its own transactions, rolling back on error automatically
+        return False
 
 
-            placeholders = ', '.join(['%s'] * len(df.columns))
-            query = f"INSERT INTO transactions ({', '.join(df.columns)}) VALUES ({placeholders})"
+def get_all_transactions():
+    db_engine = get_db_engine() # Get the SQLAlchemy engine
+
+    if db_engine is None:
+        print("Failed to get database engine. Cannot fetch transactions.")
+        return pd.DataFrame() # Return empty DataFrame on connection failure
+
+    query = "SELECT * FROM transactions ORDER BY date DESC"
+
+    try:
+        # Use pandas.read_sql with the SQLAlchemy engine
+        # It handles fetching data and building the DataFrame
+        df = pd.read_sql(SQL_text(query), db_engine)
+        
+        if not df.empty:
+            print("Successfully fetched transactions. Head of DataFrame:")
+            print(df.head())
+        else:
+            print("No transactions found in the database.")
             
-            try:
-                cursor.executemany(query, data)
-                conn.commit()
-                print(f"Inserted {cursor.rowcount} rows into the transactions table.")
-                return True
-            except Exception as e:
-                print(f"Error inserting data: {e}")
-                conn.rollback()
-                return False
+        return df
+    except Exception as e:
+        print(f"Error fetching transactions: {e}")
+        return pd.DataFrame() # Return empty DataFrame on error
