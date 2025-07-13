@@ -164,17 +164,6 @@ def get_fund_id(fund_name):
         return None
  
 
-    try:
-        if save_transactions(transactions):
-            print(f"Successfully saved {len(transactions)} transactions.")
-            return True
-        else:
-            print("Failed to save transactions.")
-            return False
-    except Exception as e:
-        print(f"Error saving transactions: {e}")
-        return False
-
 @app.route("/manual-entry")
 def manual_entry():
     return render_template("manual_entry.html", active_page="manual_entry")
