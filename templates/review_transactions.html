@@ -15,6 +15,7 @@
                     <th>{{ key.capitalize() }}</th>
                 {% endif %}
             {% endfor %}
+            <th>Sinking Fund</th>
         </tr>
     </thead>
     <tbody>
@@ -41,6 +42,14 @@
                     {% endif %}
                 </td>
             {% endfor %}
+            <td>
+                <select name="sinking_fund_{{ row_index }}" class="form-select">
+                    <option value="" selected></option>
+                    {% for fund in sinking_funds.keys() %}
+                        <option value="{{ fund }}">{{ fund }}</option>
+                    {% endfor %}
+                </select>
+            </td>
 
         <!-- Hidden fields to retain full row -->
         <input type="hidden" name="date_{{ row_index }}" value="{{ transaction.date }}">
@@ -54,7 +63,7 @@
 
 <input type="hidden" name="total_rows" value="{{ transactions|length }}">
 <button type="submit" class="btn btn-primary">Submit Changes</button>
-<button type="button" class="btn btn-danger" onclick="window.location.href='{{ url_for('upload_statements') }}'">Cancel</button>
+<button type="button" class="btn btn-danger" id="cancel-button">Cancel</button>
 </form>
 <script src="{{ url_for('static', filename='scripts/review_transactions.js') }}"></script>
 {% endblock %}

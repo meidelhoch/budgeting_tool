@@ -5,6 +5,7 @@ import psycopg
 import os
 from dotenv import load_dotenv
 from db_management.transactions import save_transactions, get_all_transactions
+from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict
 
 
 load_dotenv()
@@ -29,9 +30,12 @@ CATEGORIES = {
     'Other': 'cat-other',
 }
 
+SINKING_FUNDS = get_funds_dict()
+
 
 
 app = Flask(__name__)
+
 
 @app.template_filter("money")
 def money_format(value):
@@ -93,7 +97,7 @@ def upload_file():
         print("Combined DataFrame:")
         print(combined_df)
 
-        return render_template("review_transactions.html", transactions=combined_df.to_dict(orient='records'), categories=CATEGORIES)
+        return render_template("review_transactions.html", transactions=combined_df.to_dict(orient='records'), categories=CATEGORIES, sinking_funds=SINKING_FUNDS)
 
     else:
         print("No valid files processed.")
@@ -111,7 +115,8 @@ def clean_file(file, label):
 def save_transactions_route():
     print(request.form)
     total = int(request.form.get("total_rows", 0))
-    updated_rows = []
+    all_transaction_rows = []
+    all_sinking_fund_rows = []
 
     for i in range(total):
         reimbursement_amount = request.form.get(f"reimbursement_amount_{i}", 0)
@@ -123,24 +128,52 @@ def save_transactions_route():
             reimbursement_status = True
         else:
             reimbursement_status = False
-        print(reimbursement_status)
-        row = {
+
+        sinking_fund_id = get_fund_id(request.form.get(f"sinking_fund_{i}"))
+        transaction_row = {
             "date": request.form.get(f"date_{i}"),
             "description": request.form.get(f"description_{i}"),
             "amount": float(request.form.get(f"amount_{i}")),
             "category": request.form.get(f"category_{i}"),
             "reimbursed": reimbursement_status,
             "reimbursement_amount": float(reimbursement_amount),
+            "sinking_fund_id": sinking_fund_id,
             "card": request.form.get(f"card_{i}")
         }
-        print(row)
-        updated_rows.append(row)
+        print(transaction_row)
+        all_transaction_rows.append(transaction_row)
 
-    if save_transactions(pd.DataFrame(updated_rows)):
+        if sinking_fund_id is not None:
+            sinking_fund_row = {
+                "fund_id": sinking_fund_id,
+                "date": request.form.get(f"date_{i}"),
+                "description": request.form.get(f"description_{i}"),
+                "amount": float(request.form.get(f"amount_{i}"))
+            }
+            print(sinking_fund_row)
+            all_sinking_fund_rows.append(sinking_fund_row)
+
+    if save_transactions(pd.DataFrame(all_transaction_rows)) and save_sinking_fund_transactions(pd.DataFrame(all_sinking_fund_rows)):
         return render_template("confirmation_page.html", message="Transactions saved successfully!")
-    else:
-        return render_template("confirmation_page.html", message="Failed to save transactions.")
+    return render_template("confirmation_page.html", message="Failed to save transactions.")
 
+def get_fund_id(fund_name):
+    if fund_name in SINKING_FUNDS:
+        return SINKING_FUNDS.get(fund_name)
+    else:
+        return None
+ 
+
+    try:
+        if save_transactions(transactions):
+            print(f"Successfully saved {len(transactions)} transactions.")
+            return True
+        else:
+            print("Failed to save transactions.")
+            return False
+    except Exception as e:
+        print(f"Error saving transactions: {e}")
+        return False
 
 @app.route("/manual-entry")
 def manual_entry():

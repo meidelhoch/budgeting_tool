@@ -30,5 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+    const cancelButton = document.getElementById('cancel-button');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            // This will be replaced by Flask when the template is rendered
+            window.location.href = "/upload-statements";
+        });
+    }
 });
+
+
 
