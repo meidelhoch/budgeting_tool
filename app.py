@@ -3,9 +3,12 @@ from csv_cleaning import clean_apple, clean_amex
 import pandas as pd
 import psycopg
 import os
+from datetime import datetime
+import calendar
 from dotenv import load_dotenv
 from db_management.transactions import save_transactions, get_all_transactions
 from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict
+from db_management.budget import get_categories_dict, get_monthly_spending
 
 
 load_dotenv()
@@ -16,19 +19,7 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 
-CATEGORIES = {
-    'Grocery': 'cat-grocery',
-    'Dining': 'cat-dining',
-    'Shopping': 'cat-shopping',
-    'Transportation': 'cat-transportation',
-    'Housing': 'cat-housing',
-    'Entertainment': 'cat-entertainment',
-    'Travel': 'cat-travel',
-    'Medical': 'cat-medical',
-    'Wellness': 'cat-wellness',
-    'Gifts': 'cat-gifts',
-    'Other': 'cat-other',
-}
+CATEGORIES = get_categories_dict()
 
 SINKING_FUNDS = get_funds_dict()
 
@@ -50,14 +41,26 @@ def home():
 
 @app.route("/budget")
 def budget():
-    return render_template("budget.html", active_page="budget")
+    now = datetime.now()
+    month = int(request.args.get("month", now.month - 1 if now.month > 1 else 12))  # Default to last month, but if January, go to December
+    year = int(request.args.get("year", now.year))
+    current_year = now.year
+    months = [(i, calendar.month_name[i]) for i in range(1, 13)]
+
+    monthly_spending = get_monthly_spending(month, year)
+    print(monthly_spending)
+    return render_template("budget.html", active_page="budget", monthly_spending=monthly_spending, current_year=current_year, selected_month=month, selected_year=year, months=months)
 
 @app.route("/spending")
 def spending():
     transactions = get_all_transactions()
     transactions["net_amount"] = transactions["amount"] - transactions["reimbursement_amount"]
     filtered_transactions = transactions[transactions["net_amount"] > 0]
-    display_transactions = filtered_transactions[["date", "description", "net_amount", "category", "card"]]
+    display_transactions = filtered_transactions[["date", "description", "net_amount", "category_name", "card"]]
+
+    print("---------------------")
+    print(display_transactions.head())
+    print(CATEGORIES)
 
     return render_template("spending.html", active_page="spending", transactions=display_transactions.to_dict(orient='records'), categories=CATEGORIES)
 

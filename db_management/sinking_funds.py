@@ -37,7 +37,9 @@ def get_funds_dict():
         df = pd.read_sql(SQL_text(query), db_engine)
         
         if not df.empty:
-            funds_dict = dict(zip(df['fund_name'], df['id']))
+            funds_dict = df.set_index('fund_name').to_dict(orient='index')
+
+            #funds_dict = dict(zip(df['fund_name'], df['id']))
             print("Successfully fetched sinking funds. Funds dictionary:")
             print(funds_dict)
             return funds_dict

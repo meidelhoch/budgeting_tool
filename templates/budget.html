@@ -5,4 +5,46 @@
 {% block content %}
 <h1>Budget</h1>
 <p>View and manage your budget data here.</p>
+<form method="GET" action="/budget" id="budget-form">
+<div class="d-flex align-items-end gap-3 mb-3">
+    <div>
+      <select class="form-select" name="month" id="month">
+        {% for num, name in months %}
+          <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <select class="form-select" name="year" id="year">
+        {% for y in range(2025, current_year + 1) %}
+          <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</form>
+
+<div>
+    <h2>Budget Categories</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Category Name</th>
+                <th>Total Spent</th>
+                <th>Monthly Budget</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in monthly_spending.keys() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ monthly_spending[key].total_spent | money }}</td>
+                <td>{{ monthly_spending[key].monthly_budget | money }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="{{ url_for('static', filename='scripts/budget_script.js') }}"></script>
 {% endblock %}

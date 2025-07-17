@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   date DATE NOT NULL,
   description TEXT NOT NULL,
   amount NUMERIC(10, 2) NOT NULL,
-  category TEXT NOT NULL,
+  category_id INTEGER REFERENCES budget_categories(id) ON DELETE SET NULL,
   reimbursed BOOLEAN NOT NULL DEFAULT FALSE,
   reimbursement_amount NUMERIC(10, 2),
   sinking_fund_id INTEGER REFERENCES sinking_funds(id) ON DELETE SET NULL,
@@ -22,4 +22,10 @@ CREATE TABLE sinking_fund_transactions (
     date DATE NOT NULL,
     description TEXT NOT NULL,
     amount NUMERIC(10, 2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS budget_categories (
+    id SERIAL PRIMARY KEY,
+    category_name TEXT UNIQUE NOT NULL,
+    monthly_budget NUMERIC(10, 2) NOT NULL
 );

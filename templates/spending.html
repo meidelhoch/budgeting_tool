@@ -5,17 +5,12 @@
 {% block content %}
 <h1>Spending</h1>
 <div class="legend">
-  <div class="legend-item"><div class="legend-color cat-grocery"></div> Grocery</div>
-  <div class="legend-item"><div class="legend-color cat-dining"></div> Dining</div>
-  <div class="legend-item"><div class="legend-color cat-shopping"></div> Shopping</div>
-  <div class="legend-item"><div class="legend-color cat-transportation"></div> Transportation</div>
-  <div class="legend-item"><div class="legend-color cat-housing"></div> Housing</div>
-  <div class="legend-item"><div class="legend-color cat-entertainment"></div> Entertainment</div>
-  <div class="legend-item"><div class="legend-color cat-travel"></div> Travel</div>
-  <div class="legend-item"><div class="legend-color cat-medical"></div> Medical</div>
-  <div class="legend-item"><div class="legend-color cat-wellness"></div> Wellness</div>
-  <div class="legend-item"><div class="legend-color cat-gifts"></div> Gifts</div>
-  <div class="legend-item"><div class="legend-color cat-other"></div> Other</div>
+    {% for category in categories.keys() %}
+        <div class="legend-item">
+            <div class="legend-color {{ categories[category].css_class }}"></div>
+            {{ category }}
+        </div>
+    {% endfor %}
 </div>
 <table class="table table-bordered">
     <thead class="table-light">
@@ -31,9 +26,9 @@
     </thead>
     <tbody>
         {% for transaction in transactions %}
-        <tr class="{{ categories.get(transaction.category) }}">
+        <tr class="{{ categories.get(transaction.category_name).get('css_class') }}">
             {% for key, value in transaction.items() %}
-                <td class="{{ categories.get(transaction.category) }}" style="margin: 0px;">
+                <td class="{{ categories.get(transaction.category_name).get('css_class') }}" style="margin: 0px;">
                     {% if key == "amount" %}
                         {{ value | money }}
                     {% elif key == "net_amount" %}

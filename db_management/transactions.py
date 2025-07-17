@@ -32,12 +32,13 @@ def get_all_transactions():
         print("Failed to get database engine. Cannot fetch transactions.")
         return pd.DataFrame() # Return empty DataFrame on connection failure
 
-    query = "SELECT * FROM transactions ORDER BY date DESC"
+    query = "SELECT * FROM transactions t JOIN budget_categories c ON t.category_id = c.id ORDER BY t.date DESC"
 
     try:
         # Use pandas.read_sql with the SQLAlchemy engine
         # It handles fetching data and building the DataFrame
         df = pd.read_sql(SQL_text(query), db_engine)
+        print(df)
         
         if not df.empty:
             print("Successfully fetched transactions. Head of DataFrame:")
