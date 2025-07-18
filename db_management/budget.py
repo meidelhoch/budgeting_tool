@@ -34,7 +34,7 @@ def get_monthly_spending(month, year):
         print("Failed to get database engine. Cannot fetch monthly spending.")
         return {}
 
-    query = f"SELECT category_name, COALESCE(SUM(t.amount), 0) as total_spent, monthly_budget FROM budget_categories c LEFT JOIN transactions t ON t.category_id = c.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} GROUP BY category_name, monthly_budget ORDER BY category_name"
+    query = f"SELECT c.id, category_name, COALESCE(SUM(t.amount), 0) as total_spent, monthly_budget FROM budget_categories c LEFT JOIN transactions t ON t.category_id = c.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} GROUP BY category_name, monthly_budget, c.id ORDER BY c.id"
 
     try:
         df = pd.read_sql(SQL_text(query), db_engine)
@@ -50,3 +50,4 @@ def get_monthly_spending(month, year):
     except Exception as e:
         print(f"Error fetching total spent: {e}")
         return {}  # Return empty dict on error
+

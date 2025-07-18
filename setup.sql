@@ -29,3 +29,10 @@ CREATE TABLE IF NOT EXISTS budget_categories (
     category_name TEXT UNIQUE NOT NULL,
     monthly_budget NUMERIC(10, 2) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS income (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    description TEXT NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL
+);

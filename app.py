@@ -7,8 +7,9 @@ from datetime import datetime
 import calendar
 from dotenv import load_dotenv
 from db_management.transactions import save_transactions, get_all_transactions
-from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict
+from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict, get_sinking_fund_values
 from db_management.budget import get_categories_dict, get_monthly_spending
+from db_management.income import get_monthly_income
 
 
 load_dotenv()
@@ -48,15 +49,20 @@ def budget():
     months = [(i, calendar.month_name[i]) for i in range(1, 13)]
 
     monthly_spending = get_monthly_spending(month, year)
+    sinking_fund_values = get_sinking_fund_values()
+    total_spent_sum = sum((data['total_spent'] for data in monthly_spending.values()), 0)
+    total_budget_sum = sum((data['monthly_budget'] for data in monthly_spending.values()), 0)
+
+    monthly_income = get_monthly_income(month, year)
     print(monthly_spending)
-    return render_template("budget.html", active_page="budget", monthly_spending=monthly_spending, current_year=current_year, selected_month=month, selected_year=year, months=months)
+    return render_template("budget.html", active_page="budget", monthly_income=monthly_income, total_spent=total_spent_sum, total_budget=total_budget_sum, monthly_spending=monthly_spending, current_year=current_year, selected_month=month, selected_year=year, months=months, sinking_fund_values=sinking_fund_values)
 
 @app.route("/spending")
 def spending():
     transactions = get_all_transactions()
     transactions["net_amount"] = transactions["amount"] - transactions["reimbursement_amount"]
     filtered_transactions = transactions[transactions["net_amount"] > 0]
-    display_transactions = filtered_transactions[["date", "description", "net_amount", "category_name", "card"]]
+    display_transactions = filtered_transactions[["date", "description", "net_amount", "category_name", "payment_method"]]
 
     print("---------------------")
     print(display_transactions.head())
@@ -91,7 +97,7 @@ def upload_file():
             cleaned_data = clean_file(file, label)
             cleaned_data["reimbursed"] = False
             cleaned_data["reimbursement_amount"] = 0
-            cleaned_data["card"] = label
+            cleaned_data["payment_method"] = label
             cleaned_dfs.append(cleaned_data)
             print(cleaned_data)
 
@@ -137,11 +143,11 @@ def save_transactions_route():
             "date": request.form.get(f"date_{i}"),
             "description": request.form.get(f"description_{i}"),
             "amount": float(request.form.get(f"amount_{i}")),
-            "category": request.form.get(f"category_{i}"),
+            "category_id": get_category_id(request.form.get(f"category_{i}")),
             "reimbursed": reimbursement_status,
             "reimbursement_amount": float(reimbursement_amount),
             "sinking_fund_id": sinking_fund_id,
-            "card": request.form.get(f"card_{i}")
+            "payment_method": request.form.get(f"payment_method_{i}")
         }
         print(transaction_row)
         all_transaction_rows.append(transaction_row)
@@ -151,7 +157,7 @@ def save_transactions_route():
                 "fund_id": sinking_fund_id,
                 "date": request.form.get(f"date_{i}"),
                 "description": request.form.get(f"description_{i}"),
-                "amount": float(request.form.get(f"amount_{i}"))
+                "amount": -float(request.form.get(f"amount_{i}"))
             }
             print(sinking_fund_row)
             all_sinking_fund_rows.append(sinking_fund_row)
@@ -165,11 +171,43 @@ def get_fund_id(fund_name):
         return SINKING_FUNDS.get(fund_name)
     else:
         return None
- 
+
+def get_category_id(category):
+    id = CATEGORIES.get(category).get("id")
+    return id
+
 
 @app.route("/manual-entry")
 def manual_entry():
-    return render_template("manual_entry.html", active_page="manual_entry")
+    return render_template("manual_entry.html", active_page="manual_entry", categories=CATEGORIES)
+
+@app.route("/manual-entry-spending", methods=["POST"])
+def manual_entry_spending():
+    print("--------------------")
+    print(request.form)
+    num_entries = int(request.form.get("num_entries", 0))
+    df = pd.DataFrame(columns=["date", "amount", "description", "category", "payment_method", "reimbursed", "reimbursement_amount"])
+
+    for i in range(num_entries):
+        date = request.form.get(f"transaction_date[{i}]")
+        description = request.form.get(f"description[{i}]")
+        amount = request.form.get(f"amount[{i}]")
+        category = request.form.get(f"category[{i}]")
+        payment_method = request.form.get(f"payment_method[{i}]")
+
+        new_row = {
+            "date": date,
+            "description": description,
+            "amount": float(amount) if amount else 0.0,
+            "category": category,
+            "payment_method": payment_method, 
+            "reimbursed": False,
+            "reimbursement_amount": 0,
+        }
+
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+    return render_template("review_transactions.html", transactions=df.to_dict(orient='records'), categories=CATEGORIES, sinking_funds=SINKING_FUNDS)
 
 
 @app.route("/settings")

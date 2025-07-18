@@ -55,7 +55,7 @@
         <input type="hidden" name="date_{{ row_index }}" value="{{ transaction.date }}">
         <input type="hidden" name="description_{{ row_index }}" value="{{ transaction.description }}">
         <input type="hidden" class="amount" name="amount_{{ row_index }}" value="{{ transaction.amount }}" data-row="{{ row_index }}">
-        <input type="hidden" name="card_{{ row_index }}" value="{{ transaction.card }}">
+        <input type="hidden" name="payment_method_{{ row_index }}" value="{{ transaction.payment_method }}">
     </tr>
     {% endfor %}
 </tbody>

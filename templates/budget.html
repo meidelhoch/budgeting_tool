@@ -2,49 +2,132 @@
 
 {% block title %}Budget{% endblock %}
 
+
 {% block content %}
-<h1>Budget</h1>
-<p>View and manage your budget data here.</p>
-<form method="GET" action="/budget" id="budget-form">
-<div class="d-flex align-items-end gap-3 mb-3">
-    <div>
-      <select class="form-select" name="month" id="month">
-        {% for num, name in months %}
-          <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+<div class="container">
+    <div class="row">
+        <div id="budget-container" class="col-md-8">
+            <form method="GET" action="/budget" id="budget-form">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div>
+                        <select class="form-select" name="month" id="month">
+                            {% for num, name in months %}
+                            <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-    <div>
-      <select class="form-select" name="year" id="year">
-        {% for y in range(2025, current_year + 1) %}
-          <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
-</form>
+                    <div>
+                        <select class="form-select" name="year" id="year">
+                            {% for y in range(2025, current_year + 1) %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
 
-<div>
-    <h2>Budget Categories</h2>
-    <table class="table table-bordered">
-        <thead class="table-light">
-            <tr>
-                <th>Category Name</th>
-                <th>Total Spent</th>
-                <th>Monthly Budget</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for key in monthly_spending.keys() %}
-            <tr>
-                <td>{{ key }}</td>
-                <td>{{ monthly_spending[key].total_spent | money }}</td>
-                <td>{{ monthly_spending[key].monthly_budget | money }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+            <div>
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Total Spent</th>
+                            <th>Monthly Budget</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key in monthly_spending.keys() %}
+                            {% set spent = monthly_spending[key].total_spent %}
+                            {% set budget = monthly_spending[key].monthly_budget %}
+                            {% set percentage = (spent / budget * 100) if budget else 0 %}
+                            {% if percentage > 100 %}
+                                {% set bar_class = "bg-danger" %}
+                            {% elif percentage > 70 %}
+                                {% set bar_class = "bg-warning" %}
+                            {% else %}
+                                {% set bar_class = "bg-success" %}
+                            {% endif %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ spent | money }}</td>
+                            <td>{{ budget | money }}</td>
+                            <td>
+                                <div class="progress w-100" style="height: 25px;">
+                                    <div class="progress-bar {{ bar_class }}" role="progressbar"
+                                        style="width: {{ percentage }}%;"
+                                        aria-valuenow="{{ percentage  }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100">
+                                        {% if percentage > 25 %}
+                                            {{ percentage | round | int }}%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% set total_percentage = (total_spent / total_budget * 100) if total_budget else 0 %}
+                            {% if total_percentage > 100 %}
+                                {% set total_bar_class = "bg-danger" %}
+                            {% elif total_percentage > 70 %}
+                                {% set total_bar_class = "bg-warning" %}
+                            {% else %}
+                                {% set total_bar_class = "bg-success" %}
+                            {% endif %}
+                        <tr class="fw-bold">
+                            <td>Total</td>
+                            <td>{{ total_spent | money }}</td>
+                            <td>{{ total_budget | money }}</td>
+                            <td>
+                                <div class="progress w-100" style="height: 25px;">
+                                    <div class="progress-bar {{ total_bar_class }}" role="progressbar"
+                                        style="width: {{ total_percentage }}%;"
+                                        aria-valuenow="{{ total_percentage  }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100">
+                                        {% if total_percentage > 25 %}
+                                            {{ total_percentage | round | int }}%
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="sinking-funds-container" class="col-md-4">
+            <div class="d-flex flex-column gap-3">
+                {% for key in sinking_fund_values %}
+                    {% set fund = sinking_fund_values.get(key) %}
+                    {% set fund_value = fund.get('fund_value') %}
+                    {% set is_positive = fund_value >= 0 %}
+                    <div class="card {% if is_positive %}border-success text-success{% else %}border-danger text-danger{% endif %}" >
+                        <div class="card-body">
+                            <h5 class="card-title mb-2">{{ key }}</h5>
+                            <p class="card-text text-muted mb-0">
+                                {{ fund_value | money }}
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% set savings = monthly_income - total_spent %}
+                {% set savings_is_positive = savings >= 0 %}
+                <div class="card {% if savings_is_positive %}border-success text-success{% else %}border-danger text-danger{% endif %}" >
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">Savings</h5>
+                        <p class="card-text text-muted mb-0">
+                            {{ savings | money }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script src="{{ url_for('static', filename='scripts/budget_script.js') }}"></script>
 {% endblock %}

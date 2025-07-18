@@ -12,7 +12,7 @@ def save_transactions(df):
 
     if df.empty:
         print("No data to save.")
-        return False
+        return True
 
     try:
         df.to_sql('transactions', con=db_engine, if_exists='append', index=False)

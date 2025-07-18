@@ -11,7 +11,7 @@ def save_sinking_fund_transactions(df):
 
     if df.empty:
         print("No data to save.")
-        return False
+        return True
 
     try:
         df.to_sql('sinking_fund_transactions', con=db_engine, if_exists='append', index=False)
@@ -48,4 +48,28 @@ def get_funds_dict():
             return {}
     except Exception as e:
         print(f"Error fetching sinking funds: {e}")
+        return {}  # Return empty dict on error
+    
+def get_sinking_fund_values():
+    db_engine = get_db_engine()  # Get the SQLAlchemy engine
+
+    if db_engine is None:
+        print("Failed to get database engine. Cannot fetch sinking fund values.")
+        return {}
+
+    query = "SELECT s.fund_name, COALESCE(SUM(t.amount), 0) as fund_value FROM sinking_funds s LEFT JOIN sinking_fund_transactions t ON t.fund_id = s.id GROUP BY s.fund_name;"
+
+    try:
+        df = pd.read_sql(SQL_text(query), db_engine)
+
+        if not df.empty:
+            funds_dict = df.set_index('fund_name').to_dict(orient='index')
+            print("Successfully fetched sinking fund values. Sinking funds dictionary:")
+            print(funds_dict)
+            return funds_dict
+        else:
+            print("No sinking funds found in the database.")
+            return {}
+    except Exception as e:
+        print(f"Error fetching sinking fund values: {e}")
         return {}  # Return empty dict on error
