@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy.sql import text as SQL_text
 
 def save_sinking_fund_transactions(df):
-    db_engine = get_db_engine() # Get the SQLAlchemy engine
+    db_engine = get_db_engine() 
 
     if db_engine is None:
         print("Failed to get database engine. Cannot save data.")
@@ -20,12 +20,11 @@ def save_sinking_fund_transactions(df):
         return True
     except Exception as e:
         print(f"Error saving data to sinking_fund_transactions table: {e}")
-        # pandas.to_sql handles its own transactions, rolling back on error automatically
         return False
     
 
 def get_funds_dict():
-    db_engine = get_db_engine() # Get the SQLAlchemy engine
+    db_engine = get_db_engine() 
 
     if db_engine is None:
         print("Failed to get database engine. Cannot fetch funds.")
@@ -39,7 +38,6 @@ def get_funds_dict():
         if not df.empty:
             funds_dict = df.set_index('fund_name').to_dict(orient='index')
 
-            #funds_dict = dict(zip(df['fund_name'], df['id']))
             print("Successfully fetched sinking funds. Funds dictionary:")
             print(funds_dict)
             return funds_dict
@@ -48,10 +46,10 @@ def get_funds_dict():
             return {}
     except Exception as e:
         print(f"Error fetching sinking funds: {e}")
-        return {}  # Return empty dict on error
+        return {}  
     
 def get_sinking_fund_values():
-    db_engine = get_db_engine()  # Get the SQLAlchemy engine
+    db_engine = get_db_engine()  
 
     if db_engine is None:
         print("Failed to get database engine. Cannot fetch sinking fund values.")
@@ -72,4 +70,4 @@ def get_sinking_fund_values():
             return {}
     except Exception as e:
         print(f"Error fetching sinking fund values: {e}")
-        return {}  # Return empty dict on error
+        return {}  

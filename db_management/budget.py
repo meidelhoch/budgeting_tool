@@ -49,5 +49,5 @@ def get_monthly_spending(month, year):
             return {}
     except Exception as e:
         print(f"Error fetching total spent: {e}")
-        return {}  # Return empty dict on error
+        return {}  
 

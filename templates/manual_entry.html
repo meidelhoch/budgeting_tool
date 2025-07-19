@@ -3,58 +3,84 @@
 {% block title %}Manual Entry{% endblock %}
 
 {% block content %}
-<h1>Manual Entry</h1>
-<p>View and manage your manual entry data here.</p>
 <template id="category-options">
     {% for cat in categories.keys() %}
     <option value="{{ cat }}">{{ cat }}</option>
     {% endfor %}
 </template>
-  <div id="form-div">
-  <form action="/manual-entry-spending" method="post" enctype="multipart/form-data" id="manual_entry_spending_form">
-    <div id="spending-container">
-        <div class="spending-group row mb-3">
-            <div class="col-md-2">
-                <input class="form-control mb-3" type="date" name="transaction_date[0]">
-            </div>
-            <div class="col-md-2">
-                <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
-            </div>
-            <div class="col-md-2">
-                <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
-            </div>
-            <div class="col-md-3">
-                <select name="category[0]" class="form-select">
-                    <option value="" disabled selected>Select Category</option>
-                            {% for cat in categories.keys() %}
-                                <option value="{{ cat }}">{{ cat }}</option>
-                            {% endfor %}
-                        </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select mb-3 upload-selects" name="payment_method[0]" required>
-                    <option value="" disabled selected>Select Payment Method</option>
-                    <option value="Venmo">Venmo</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Direct Deposit">Direct Deposit</option>
-                    <option value="Delta">Delta</option>
-                    <option value="BlueCash">BlueCash</option>
-                    <option value="Apple">Apple</option>
-                </select>
+<div id="spending-div">
+    <h1>Upload Spending Transactions</h1>
+    <form action="/manual-entry-spending" method="post" enctype="multipart/form-data" id="manual_entry_spending_form">
+        <div id="spending-container">
+            <div class="spending-group row mb-3">
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="date" name="transaction_date[0]">
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
+                </div>
+                <div class="col-md-3">
+                    <select name="category[0]" class="form-select">
+                        <option value="" disabled selected>Select Category</option>
+                        {% for cat in categories.keys() %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select mb-3 upload-selects" name="payment_method[0]" required>
+                        <option value="" disabled selected>Select Payment Method</option>
+                        <option value="Venmo">Venmo</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Direct Deposit">Direct Deposit</option>
+                        <option value="Delta">Delta</option>
+                        <option value="BlueCash">BlueCash</option>
+                        <option value="Apple">Apple</option>
+                    </select>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="d-flex gap-2 mb-2">
-        <button type="button" onclick="addSpendingField()" class="btn btn-outline-success mb-3">+ Add Another</button>
-        <button type="button" onclick="removeLastSpendingField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
-    </div>
-    <div>
-        <button type="submit" class="btn btn-primary mb-3">Upload</button>
-    </div>
-    <input type="hidden" name="num_entries" value="1" id="num_entries">
-  </form>
-    </div>
+        
+        <div class="d-flex gap-2 mb-2">
+            <button type="button" onclick="addSpendingField()" class="btn btn-outline-success mb-3">+ Add Another</button>
+            <button type="button" onclick="removeLastSpendingField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary mb-3">Upload</button>
+        </div>
+        <input type="hidden" name="spending_num_entries" value="1" id="spending_num_entries">
+    </form>
+</div>
 
+<div id="income-div">
+    <h1>Upload Income Transactions</h1>
+    <form action="/manual-entry-income" method="post" enctype="multipart/form-data" id="manual_entry_income_form">
+        <div id="income-container">
+            <div class="income-group row mb-3">
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="date" name="income_date[0]">
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
+                </div>
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2 mb-2">
+            <button type="button" onclick="addIncomeField()" class="btn btn-outline-success mb-3">+ Add Another</button>
+            <button type="button" onclick="removeLastIncomeField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary mb-3">Upload</button>
+        </div>
+        <input type="hidden" name="income_num_entries" value="1" id="income_num_entries">
+    </form>
+</div>
 <script src="{{ url_for('static', filename='scripts/manual_entry.js') }}"></script>
 {% endblock %}

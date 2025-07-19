@@ -18,6 +18,10 @@
             {% for key in transactions[0].keys() %}
                 {% if key == "net_amount" %}
                     <th>Amount Spent</th>
+                {% elif key == "category_name" %}
+                    <th>Category Name</th>
+                {% elif key == "payment_method" %}
+                    <th>Payment Method</th>
                 {% else %}
                 <th>{{ key.capitalize() }}</th>
                 {% endif %}

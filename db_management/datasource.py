@@ -26,11 +26,8 @@ def get_db_engine():
             f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
         
-        # Create the engine. echo=True is great for debugging (shows SQL queries in console)
         engine = create_engine(database_url, echo=False)
         
-        # Test connection (optional, create_engine doesn't connect until first use)
-        # You would typically do this when the app starts up
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
             print("Successfully connected to the database via SQLAlchemy!")
@@ -39,6 +36,5 @@ def get_db_engine():
 
     except Exception as e:
         print(f"Error creating SQLAlchemy engine or connecting to the database: {e}")
-        # Optionally re-raise the exception or handle it more robustly
         raise
 

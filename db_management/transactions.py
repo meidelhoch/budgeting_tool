@@ -4,7 +4,7 @@ from sqlalchemy.sql import text as SQL_text
 
 
 def save_transactions(df):
-    db_engine = get_db_engine() # Get the SQLAlchemy engine
+    db_engine = get_db_engine()
 
     if db_engine is None:
         print("Failed to get database engine. Cannot save data.")
@@ -21,22 +21,19 @@ def save_transactions(df):
         return True
     except Exception as e:
         print(f"Error saving data to transactions table: {e}")
-        # pandas.to_sql handles its own transactions, rolling back on error automatically
         return False
 
 
 def get_all_transactions():
-    db_engine = get_db_engine() # Get the SQLAlchemy engine
+    db_engine = get_db_engine() 
 
     if db_engine is None:
         print("Failed to get database engine. Cannot fetch transactions.")
-        return pd.DataFrame() # Return empty DataFrame on connection failure
+        return pd.DataFrame()
 
     query = "SELECT * FROM transactions t JOIN budget_categories c ON t.category_id = c.id ORDER BY t.date DESC"
 
     try:
-        # Use pandas.read_sql with the SQLAlchemy engine
-        # It handles fetching data and building the DataFrame
         df = pd.read_sql(SQL_text(query), db_engine)
         print(df)
         
@@ -49,4 +46,4 @@ def get_all_transactions():
         return df
     except Exception as e:
         print(f"Error fetching transactions: {e}")
-        return pd.DataFrame() # Return empty DataFrame on error
+        return pd.DataFrame() 
