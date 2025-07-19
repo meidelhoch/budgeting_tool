@@ -70,4 +70,55 @@ def get_sinking_fund_values():
             return {}
     except Exception as e:
         print(f"Error fetching sinking fund values: {e}")
+        return {}
+
+def get_fund_contributions():
+    db_engine = get_db_engine()  
+
+    if db_engine is None:
+        print("Failed to get database engine. Cannot fetch sinking fund values.")
+        return {}
+
+    query = "SELECT id, fund_name, default_contribution, contribution_category_id FROM sinking_funds"
+
+    try:
+        df = pd.read_sql(SQL_text(query), db_engine)
+
+        if not df.empty:
+            fund_contributions_dict = df.set_index('fund_name').to_dict(orient='index')
+            print("Successfully fetched sinking fund contributions. Sinking fund contributions dictionary:")
+            print(fund_contributions_dict)
+            return fund_contributions_dict
+        else:
+            print("No sinking funds found in the database.")
+            return {}
+    except Exception as e:
+        print(f"Error fetching sinking fund values: {e}")
         return {}  
+
+def get_all_sinking_fund_transactions(month, year):
+    db_engine = get_db_engine()  
+
+    if db_engine is None:
+        print("Failed to get database engine. Cannot fetch sinking fund values.")
+        return pd.DataFrame()
+    
+    if month > 0:
+        query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
+    else:
+        query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
+
+
+    try:
+        df = pd.read_sql(SQL_text(query), db_engine)
+        print(df)
+
+        if not df.empty:
+            print("Successfully fetched sinking fund transactions. Sinking funds dictionary:")
+            return df
+        else:
+            print("No sinking funds found in the database.")
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"Error fetching sinking fund values: {e}")
+        return pd.DataFrame()

@@ -8,21 +8,26 @@
     <option value="{{ cat }}">{{ cat }}</option>
     {% endfor %}
 </template>
+<template id="payment-method-options">
+    {% for method in payment_methods %}
+    <option value="{{ method }}"> {{ method }}</option>
+    {% endfor %}
+</template>
 <div id="spending-div">
-    <h1>Upload Spending Transactions</h1>
+    <h2>Upload Spending Transactions</h2>
     <form action="/manual-entry-spending" method="post" enctype="multipart/form-data" id="manual_entry_spending_form">
         <div id="spending-container">
             <div class="spending-group row mb-3">
                 <div class="col-md-2">
                     <input class="form-control mb-3" type="date" name="transaction_date[0]">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
                 </div>
                 <div class="col-md-2">
                     <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="category[0]" class="form-select">
                         <option value="" disabled selected>Select Category</option>
                         {% for cat in categories.keys() %}
@@ -33,12 +38,10 @@
                 <div class="col-md-3">
                     <select class="form-select mb-3 upload-selects" name="payment_method[0]" required>
                         <option value="" disabled selected>Select Payment Method</option>
-                        <option value="Venmo">Venmo</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Direct Deposit">Direct Deposit</option>
-                        <option value="Delta">Delta</option>
-                        <option value="BlueCash">BlueCash</option>
-                        <option value="Apple">Apple</option>
+
+                        {% for method in payment_methods %}
+                        <option value="{{ method }}"> {{ method }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -56,7 +59,7 @@
 </div>
 
 <div id="income-div">
-    <h1>Upload Income Transactions</h1>
+    <h2>Upload Income Transactions</h2>
     <form action="/manual-entry-income" method="post" enctype="multipart/form-data" id="manual_entry_income_form">
         <div id="income-container">
             <div class="income-group row mb-3">
@@ -81,6 +84,21 @@
         </div>
         <input type="hidden" name="income_num_entries" value="1" id="income_num_entries">
     </form>
+</div>
+<div id="default-sinking-contributions">
+    <h2>Upload Default Sinking Fund Contributions</h2>
+    <div id="sinking-contributions-container">
+        <form action="/default-sinking-contributions" method="POST" enctype="multipart/form-data" id="default-sinking-contributions-form">
+            <div class="sinking-contributions-group row mb-3">
+                <div class="col-md-2">
+                    <input class="form-control mb-3" type="date" name="contribution_date">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary mb-3">Upload</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 <script src="{{ url_for('static', filename='scripts/manual_entry.js') }}"></script>
 {% endblock %}

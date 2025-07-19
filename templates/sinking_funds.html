@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Spending{% endblock %}
+{% block title %}Sinking Funds Spending{% endblock %}
 
 {% block content %}
-<h1>Spending</h1>
-<form method="GET" action="/spending" id="spending-form">
+<h1>Sinking Funds Spending</h1>
+<form method="GET" action="/sinking-funds" id="sinking-funds-form">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <select class="form-select" name="month" id="month">
@@ -25,24 +25,12 @@
                 </div>
             </form>
 {% if transactions %}
-    <div class="legend">
-        {% for category in categories.keys() %}
-            <div class="legend-item">
-                <div class="legend-color {{ categories[category].css_class }}"></div>
-                {{ category }}
-            </div>
-        {% endfor %}
-    </div>
     <table class="table table-bordered">
         <thead class="table-light">
             <tr>
                 {% for key in transactions[0].keys() %}
-                    {% if key == "net_amount" %}
-                        <th>Amount Spent</th>
-                    {% elif key == "category_name" %}
-                        <th>Category Name</th>
-                    {% elif key == "payment_method" %}
-                        <th>Payment Method</th>
+                    {% if key == "fund_name" %}
+                        <th>Fund Name</th>
                     {% else %}
                     <th>{{ key.capitalize() }}</th>
                     {% endif %}
@@ -51,9 +39,9 @@
         </thead>
         <tbody>
             {% for transaction in transactions %}
-            <tr class="{{ categories.get(transaction.category_name).get('css_class') }}">
+            <tr>
                 {% for key, value in transaction.items() %}
-                    <td class="{{ categories.get(transaction.category_name).get('css_class') }}" style="margin: 0px;">
+                    <td style="margin: 0px;">
                         {% if key == "amount" %}
                             {{ value | money }}
                         {% elif key == "net_amount" %}
@@ -72,5 +60,5 @@
 {% else %}
 <p>No transactions found</p>
 {% endif %}
-<script src="{{ url_for('static', filename='scripts/spending_script.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/sinking_funds_script.js') }}"></script>
 {% endblock %}

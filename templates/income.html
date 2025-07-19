@@ -4,5 +4,65 @@
 
 {% block content %}
 <h1>Income</h1>
-<p>View and manage your income data here.</p>
+<form method="GET" action="/income" id="income-form">
+    <div class="d-flex align-items-end gap-3 mb-3">
+        <div>
+            <select class="form-select" name="month" id="month">
+                <option value="0" selected>Show All</option>
+                {% for num, name in months %}
+                <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select class="form-select" name="year" id="year">
+                {% for y in range(2025, current_year + 1) %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</form>
+{% if transactions %}
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                {% for key in transactions[0].keys() %}
+                    {% if key == "net_amount" %}
+                        <th>Amount Spent</th>
+                    {% elif key == "category_name" %}
+                        <th>Category Name</th>
+                    {% elif key == "payment_method" %}
+                        <th>Payment Method</th>
+                    {% else %}
+                    <th>{{ key.capitalize() }}</th>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                {% for key, value in transaction.items() %}
+                    <td class="" style="margin: 0px;">
+                        {% if key == "amount" %}
+                            {{ value | money }}
+                        {% elif key == "net_amount" %}
+                            {{ value | money }}
+                        {% elif key == "date" %}
+                            {{ value.strftime('%m/%d/%Y') }}
+                        {% else %}
+                            {{ value }}
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No transactions found.</p>
+{% endif %}
+<script src="{{ url_for('static', filename='scripts/income_script.js') }}"></script>
 {% endblock %}

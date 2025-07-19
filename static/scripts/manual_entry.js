@@ -4,6 +4,7 @@ let cur_income_index = 1;
 function addSpendingField() {
   const container = document.getElementById("spending-container");
   const optionsHTML = document.getElementById("category-options").innerHTML;
+  const methodOptionsHTML = document.getElementById("payment-method-options").innerHTML;
 
   const newGroup = document.createElement("div");
   newGroup.className = "spending-group row mb-3";
@@ -12,13 +13,13 @@ function addSpendingField() {
     <div class="col-md-2">
                 <input class="form-control mb-3" type="date" name="transaction_date[${cur_spending_index}]">
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input class="form-control mb-3" type="text" placeholder="Description" name="description[${cur_spending_index}]">
             </div>
             <div class="col-md-2">
                 <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[${cur_spending_index}]">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select name="category[${cur_spending_index}]" class="form-select">
                     <option value="" disabled selected>Select Category</option>
                             ${optionsHTML}
@@ -27,12 +28,7 @@ function addSpendingField() {
             <div class="col-md-3">
                 <select class="form-select mb-3 upload-selects" name="payment_method[${cur_spending_index}]" required>
                     <option value="" disabled selected>Select Payment Method</option>
-                    <option value="Venmo">Venmo</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Direct Deposit">Direct Deposit</option>
-                    <option value="Delta">Delta</option>
-                    <option value="BlueCash">BlueCash</option>
-                    <option value="Apple">Apple</option>
+                    ${methodOptionsHTML}
                 </select>
             </div>
   `;

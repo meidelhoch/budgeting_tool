@@ -15,6 +15,7 @@ def save_transactions(df):
         return True
 
     try:
+        print(df)
         df.to_sql('transactions', con=db_engine, if_exists='append', index=False)
         
         print(f"Successfully saved {len(df)} rows into the transactions table.")
@@ -24,14 +25,17 @@ def save_transactions(df):
         return False
 
 
-def get_all_transactions():
+def get_all_transactions(month, year):
     db_engine = get_db_engine() 
 
     if db_engine is None:
         print("Failed to get database engine. Cannot fetch transactions.")
         return pd.DataFrame()
-
-    query = "SELECT * FROM transactions t JOIN budget_categories c ON t.category_id = c.id ORDER BY t.date DESC"
+    
+    if month > 0:
+        query = f"SELECT * FROM transactions t JOIN budget_categories c ON t.category_id = c.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} ORDER BY t.date DESC"
+    else:
+        query = f"SELECT * FROM transactions t JOIN budget_categories c ON t.category_id = c.id AND EXTRACT(YEAR FROM t.date) = {year} ORDER BY t.date DESC"
 
     try:
         df = pd.read_sql(SQL_text(query), db_engine)
