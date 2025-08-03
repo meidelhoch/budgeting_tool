@@ -11,6 +11,10 @@
             {% for key in transactions[0].keys() %}
                 {% if key == "reimbursement_amount" %}
                     <th>Reimbursement Amount</th>
+                {% elif key == "category_id" %}
+                    <th>Category</th>
+                {% elif key == "payment_method" %}
+                    <th>Payment Method</th>
                 {% else %}
                     <th>{{ key.capitalize() }}</th>
                 {% endif %}
@@ -20,15 +24,15 @@
     </thead>
     <tbody>
         {% for transaction in transactions %}
-        <tr class="{% if transaction.category == 'Other' %}table-warning{% endif %}">
+        <tr class="{% if categories.get(transaction.get('category_id')).get('category_name') == 'Other' %}table-warning{% endif %}">
             {% set row_index = loop.index0 %}  {# Save row index for input names #}
 
             {% for key, value in transaction.items() %}
                 <td style="margin: 0px;">
-                    {% if key == "category" %}
-                        <select name="category_{{ row_index }}" class="form-select">
+                    {% if key == "category_id" %}
+                        <select name="category_id_{{ row_index }}" class="form-select">
                             {% for cat in categories.keys() %}
-                                <option value="{{ cat }}" {% if cat == value %}selected{% endif %}>{{ cat }}</option>
+                                <option value="{{ cat }}" {% if cat == value %}selected{% endif %}>{{ categories.get(cat).get('category_name') }}</option>
                             {% endfor %}
                         </select>
                     {% elif key == "reimbursed" %}
@@ -37,6 +41,8 @@
                         <input type="number" class="form-control reimbursement-amount" name="reimbursement_amount_{{ row_index }}" value="{{ value | money }}" step=".01" min="0.01" data-row="{{ row_index }}">
                     {% elif key == "amount" %}
                         {{ value | money }}
+                    {% elif key == "date" %}
+                        {{ value.strftime('%m/%d/%Y') }}
                     {% else %}
                         {{ value }}
                     {% endif %}
@@ -45,8 +51,8 @@
             <td>
                 <select name="sinking_fund_{{ row_index }}" class="form-select">
                     <option value="" selected></option>
-                    {% for fund in sinking_funds.keys() %}
-                        <option value="{{ fund }}">{{ fund }}</option>
+                    {% for fund_id in sinking_funds.keys() %}
+                        <option value="{{ fund_id }}">{{ sinking_funds.get(fund_id).get('fund_name') }}</option>
                     {% endfor %}
                 </select>
             </td>

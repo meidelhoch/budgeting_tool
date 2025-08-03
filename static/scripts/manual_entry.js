@@ -20,7 +20,7 @@ function addSpendingField() {
                 <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[${cur_spending_index}]">
             </div>
             <div class="col-md-2">
-                <select name="category[${cur_spending_index}]" class="form-select">
+                <select name="category_id[${cur_spending_index}]" class="form-select">
                     <option value="" disabled selected>Select Category</option>
                             ${optionsHTML}
                         </select>

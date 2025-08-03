@@ -29,7 +29,7 @@
         {% for category in categories.keys() %}
             <div class="legend-item">
                 <div class="legend-color {{ categories[category].css_class }}"></div>
-                {{ category }}
+                {{ categories[category].category_name }}
             </div>
         {% endfor %}
     </div>
@@ -39,7 +39,7 @@
                 {% for key in transactions[0].keys() %}
                     {% if key == "net_amount" %}
                         <th>Amount Spent</th>
-                    {% elif key == "category_name" %}
+                    {% elif key == "category_id" %}
                         <th>Category Name</th>
                     {% elif key == "payment_method" %}
                         <th>Payment Method</th>
@@ -51,15 +51,17 @@
         </thead>
         <tbody>
             {% for transaction in transactions %}
-            <tr class="{{ categories.get(transaction.category_name).get('css_class') }}">
+            <tr class="{{ categories.get(transaction.get('category_id')).get('css_class') }}">
                 {% for key, value in transaction.items() %}
-                    <td class="{{ categories.get(transaction.category_name).get('css_class') }}" style="margin: 0px;">
+                    <td class="{{ categories.get(transaction.get('category_id')).get('css_class') }}" style="margin: 0px;">
                         {% if key == "amount" %}
                             {{ value | money }}
                         {% elif key == "net_amount" %}
                             {{ value | money }}
                         {% elif key == "date" %}
                             {{ value.strftime('%m/%d/%Y') }}
+                        {% elif key == "category_id" %}
+                            {{ categories.get(value).get('category_name') }}
                         {% else %}
                             {{ value }}
                         {% endif %}

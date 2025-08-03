@@ -5,7 +5,7 @@
 {% block content %}
 <template id="category-options">
     {% for cat in categories.keys() %}
-    <option value="{{ cat }}">{{ cat }}</option>
+    <option value="{{ cat }}">{{ categories.get(cat).get('category_name') }}</option>
     {% endfor %}
 </template>
 <template id="payment-method-options">
@@ -28,10 +28,10 @@
                     <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
                 </div>
                 <div class="col-md-2">
-                    <select name="category[0]" class="form-select">
+                    <select name="category_id[0]" class="form-select">
                         <option value="" disabled selected>Select Category</option>
                         {% for cat in categories.keys() %}
-                            <option value="{{ cat }}">{{ cat }}</option>
+                            <option value="{{ cat }}">{{ categories.get(cat).get('category_name') }}</option>
                         {% endfor %}
                     </select>
                 </div>

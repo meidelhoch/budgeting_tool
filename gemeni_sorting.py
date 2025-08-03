@@ -2,6 +2,7 @@ from google import genai
 import json
 import os
 from dotenv import load_dotenv
+from db_management.budget import get_category_map
 
 load_dotenv()
 
@@ -41,7 +42,12 @@ def categorize_transactions(df):
     print(response.text)
 
     category_map = json.loads(response.text)[0]
+    category_to_id = get_category_map()
+    print("Category To ID:", category_to_id)
 
     df["Category"] = df["Description"].map(category_map)
+    df["Category ID"] = df["Category"].map(category_to_id)
+
+    print(df)
 
     return df

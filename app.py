@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import calendar
 from dotenv import load_dotenv
+from db_management.datasource import delete_all_data_from_db
 from db_management.spending import save_transactions, get_all_transactions
 from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict, get_sinking_fund_values, get_fund_contributions, get_all_sinking_fund_transactions
 from db_management.budget import get_categories_dict, get_monthly_spending
@@ -13,8 +14,6 @@ from db_management.income import get_monthly_income, save_income_transactions, g
 
 
 load_dotenv()
-
-# TODO: ISSUE WITH REIMBURSEMENT AND SPENIDNG TABLE AND BUDGET
 
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
@@ -26,7 +25,8 @@ CATEGORIES = get_categories_dict()
 
 SINKING_FUNDS = get_funds_dict()
 
-PAYMENT_METHODS = ["Venmo", "Cash", "Direct Deposit", "Transfer", "Delta", "BlueCash", "Apple", "Other"]
+PAYMENT_METHODS = ["Venmo", "Cash", "Direct Deposit", "Transfer", "Delta", "BlueCash",
+                   "Apple", "Costco", "Other"]
 
 MONTHS = [(i, calendar.month_name[i]) for i in range(1, 13)]
 
@@ -38,6 +38,7 @@ def money_format(value):
         return "${:,.2f}".format(float(value))
     except:
         return value
+    
 
 @app.route("/")
 def home():
@@ -56,7 +57,18 @@ def budget():
     total_budget_sum = sum((data['monthly_budget'] for data in monthly_spending.values()), 0)
 
     monthly_income = get_monthly_income(month, year)
-    return render_template("budget.html", active_page="budget", monthly_income=monthly_income, total_spent=total_spent_sum, total_budget=total_budget_sum, monthly_spending=monthly_spending, current_year=current_year, selected_month=month, selected_year=year, months=MONTHS, sinking_fund_values=sinking_fund_values)
+    return render_template("budget.html",
+                           active_page="budget",
+                           monthly_income=monthly_income,
+                           total_spent=total_spent_sum,
+                           total_budget=total_budget_sum,
+                           monthly_spending=monthly_spending,
+                           current_year=current_year,
+                           selected_month=month,
+                           selected_year=year,
+                           months=MONTHS,
+                           sinking_fund_values=sinking_fund_values
+                           )
 
 
 @app.route("/spending")
@@ -70,10 +82,26 @@ def spending():
     if not transactions.empty:
         transactions["net_amount"] = transactions["amount"] - transactions["reimbursement_amount"]
         filtered_transactions = transactions[transactions["net_amount"] > 0]
-        display_transactions = filtered_transactions[["date", "description", "net_amount", "category_name", "payment_method"]]
+        display_transactions = filtered_transactions[["date", "description", "net_amount", "category_id", "payment_method"]]
 
-        return render_template("spending.html", active_page="spending", transactions=display_transactions.to_dict(orient='records'), categories=CATEGORIES, current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
-    return render_template("spending.html", active_page="spending", transactions=None, categories=CATEGORIES, current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
+        return render_template("spending.html",
+                               active_page="spending",
+                               transactions=display_transactions.to_dict(orient='records'),
+                               categories=CATEGORIES,
+                               current_year=current_year,
+                               selected_month=month,
+                               selected_year=year,
+                               months=MONTHS
+                               )
+    return render_template("spending.html",
+                           active_page="spending",
+                           transactions=None,
+                           categories=CATEGORIES,
+                           current_year=current_year,
+                           selected_month=month,
+                           selected_year=year,
+                           months=MONTHS
+                           )
 
 
 @app.route("/income")
@@ -84,24 +112,52 @@ def income():
     current_year = now.year
 
     transactions = get_all_income_transactions(month, year)
+
     if not transactions.empty:
         transactions.drop('id', axis=1, inplace=True)
-        return render_template("income.html", active_page="income", transactions=transactions.to_dict(orient='records'), current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
-    return render_template("income.html", active_page="income", transactions=None, current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
+        return render_template("income.html",
+                               active_page="income",
+                               transactions=transactions.to_dict(orient='records'),
+                               current_year=current_year,
+                               selected_month=month,
+                               selected_year=year,
+                               months=MONTHS
+                               )
+    return render_template("income.html",
+                           active_page="income",
+                           transactions=None,
+                           current_year=current_year,
+                           selected_month=month,
+                           selected_year=year,
+                           months=MONTHS
+                           )
  
 @app.route("/sinking-funds")
 def sinking_funds():
     now = datetime.now()
-    month = int(request.args.get("month", 0))  # Default to show all
+    month = int(request.args.get("month", 0))
     year = int(request.args.get("year", now.year))
     current_year = now.year
 
     all_transactions = get_all_sinking_fund_transactions(month, year)
-    print(all_transactions)
 
     if not all_transactions.empty:
-        return render_template("sinking_funds.html", active_page="sinking_funds", transactions=all_transactions.to_dict(orient='records'), current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
-    return render_template("sinking_funds.html", active_page="sinking_funds", transactions=[], current_year=current_year, selected_month=month, selected_year=year, months=MONTHS)
+        return render_template("sinking_funds.html",
+                               active_page="sinking_funds",
+                               transactions=all_transactions.to_dict(orient='records'),
+                               current_year=current_year,
+                               selected_month=month,
+                               selected_year=year,
+                               months=MONTHS
+                               )
+    return render_template("sinking_funds.html",
+                           active_page="sinking_funds",
+                           transactions=None,
+                           current_year=current_year,
+                           selected_month=month,
+                           selected_year=year,
+                           months=MONTHS
+                           )
     
 
 
@@ -132,12 +188,15 @@ def upload_file():
 
     if cleaned_dfs:
         combined_df = pd.concat(cleaned_dfs, ignore_index=True)
-
-        return render_template("review_transactions.html", transactions=combined_df.to_dict(orient='records'), categories=CATEGORIES, sinking_funds=SINKING_FUNDS)
+        combined_df["date"] = pd.to_datetime(combined_df["date"], errors='coerce')
+        return render_template("review_transactions.html",
+                               transactions=combined_df.to_dict(orient='records'),
+                               categories=CATEGORIES,
+                               sinking_funds=SINKING_FUNDS
+                               )
 
     else:
-        print("No valid files processed.")
-        return pd.DataFrame()
+        return render_template("confirmation_page.html", message="No valid CSV files uploaded.")
 
 
 def clean_file(file, label):
@@ -157,16 +216,14 @@ def save_transactions_route():
 
     for i in range(total):
         reimbursement_amount = get_reimbursement_amount(request.form.get(f"reimbursement_amount_{i}", 0))
-        print(request.form.get(f"reimbursed_{i}"))
         reimbursement_status = get_reimbursement_status(request.form.get(f"reimbursed_{i}"))
-        print(reimbursement_status)
-        sinking_fund_id = get_fund_id(request.form.get(f"sinking_fund_{i}"))
+        sinking_fund_id = int(request.form.get(f"sinking_fund_{i}"))
 
         transaction_row = {
             "date": request.form.get(f"date_{i}"),
             "description": request.form.get(f"description_{i}"),
             "amount": float(request.form.get(f"amount_{i}")),
-            "category_id": get_category_id(request.form.get(f"category_{i}")),
+            "category_id": int(request.form.get(f"category_id_{i}")),
             "reimbursed": reimbursement_status,
             "reimbursement_amount": float(reimbursement_amount),
             "sinking_fund_id": sinking_fund_id,
@@ -183,6 +240,9 @@ def save_transactions_route():
                 "amount": -float(request.form.get(f"amount_{i}"))
             }
             all_sinking_fund_rows.append(sinking_fund_row)
+
+    print("All transaction rows:", all_transaction_rows)
+    print("All sinking fund rows:", all_sinking_fund_rows)
 
     if save_transactions(pd.DataFrame(all_transaction_rows)) and save_sinking_fund_transactions(pd.DataFrame(all_sinking_fund_rows)):
         return render_template("confirmation_page.html", message="Transactions saved successfully!")
@@ -209,13 +269,18 @@ def get_fund_id(fund_name):
 
 
 def get_category_id(category):
-    id = CATEGORIES.get(category).get("id")
-    return id
+    print(category)
+    category_id = CATEGORIES.get(category).get("id")
+    return category_id
 
 
 @app.route("/manual-entry")
 def manual_entry():
-    return render_template("manual_entry.html", active_page="manual_entry", categories=CATEGORIES, payment_methods=PAYMENT_METHODS)
+    return render_template("manual_entry.html", 
+                           active_page="manual_entry", 
+                           categories=CATEGORIES, 
+                           payment_methods=PAYMENT_METHODS
+                           )
 
 
 @app.route("/manual-entry-spending", methods=["POST"])
@@ -227,11 +292,11 @@ def manual_entry_spending():
         date = request.form.get(f"transaction_date[{i}]")
         description = request.form.get(f"description[{i}]")
         amount = request.form.get(f"amount[{i}]")
-        category_id = get_category_id(request.form.get(f"category[{i}]"))
+        category_id = int(request.form.get(f"category_id[{i}]"))
         payment_method = request.form.get(f"payment_method[{i}]")
 
         new_row = {
-            "date": date,
+            "date": datetime.strptime(date, "%Y-%m-%d"),
             "description": description,
             "amount": float(amount) if amount else 0.0,
             "category_id": category_id,
@@ -244,7 +309,11 @@ def manual_entry_spending():
 
         df = pd.DataFrame(row_list)
 
-    return render_template("review_transactions.html", transactions=df.to_dict(orient='records'), categories=CATEGORIES, sinking_funds=SINKING_FUNDS)
+    return render_template("review_transactions.html", 
+                           transactions=df.to_dict(orient='records'), 
+                           categories=CATEGORIES, 
+                           sinking_funds=SINKING_FUNDS
+                           )
 
 
 @app.route("/manual-entry-income", methods=["POST"])
@@ -285,7 +354,7 @@ def default_sinking_contributions():
         category_id = sinking_fund_dict.get(fund).get("contribution_category_id")
         fund_id = sinking_fund_dict.get(fund).get("id")
         new_transaction_row = {
-            "date": request.form.get("contribution_date"),
+            "date": datetime.strptime(request.form.get("contribution_date"), "%Y-%m-%d"),
             "description": f"Sinking fund contribution for {fund}",
             "amount": default_contribution,
             "category_id": category_id,
@@ -297,7 +366,7 @@ def default_sinking_contributions():
 
         new_sinking_fund_transaction_row = {
             "fund_id": fund_id,
-            "date": request.form.get(f"contribution_date"),
+            "date": datetime.strptime(request.form.get("contribution_date"), "%Y-%m-%d"),
             "description": f"Sinking fund contribution for {fund}",
             "amount": default_contribution
         }
@@ -316,5 +385,15 @@ def settings():
     return render_template("settings.html", active_page="settings")
 
 
+@app.route("/delete-all-data")
+def delete_all_data():
+    result = delete_all_data_from_db()
+
+    if result:
+        return render_template("confirmation_page.html", message="All data has been successfully deleted.")
+    return render_template("confirmation_page.html", message="Failed to delete all data.")
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
+
+
