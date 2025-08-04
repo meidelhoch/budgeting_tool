@@ -13,90 +13,96 @@
     <option value="{{ method }}"> {{ method }}</option>
     {% endfor %}
 </template>
-<div id="spending-div">
-    <h2>Upload Spending Transactions</h2>
-    <form action="/manual-entry-spending" method="post" enctype="multipart/form-data" id="manual_entry_spending_form">
-        <div id="spending-container">
-            <div class="spending-group row mb-3">
-                <div class="col-md-2">
-                    <input class="form-control mb-3" type="date" name="transaction_date[0]">
+<div id="default-sinking-contributions" class="card mb-3">
+    <div class="card-body">
+        <h2>Upload Default Sinking Fund Contributions</h2>
+        <div id="sinking-contributions-container">
+            <form action="/default-sinking-contributions" method="POST" enctype="multipart/form-data" id="default-sinking-contributions-form">
+                <div class="sinking-contributions-group row">
+                    <div class="col-md-2">
+                        <input class="form-control" type="date" name="contribution_date">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
-                </div>
-                <div class="col-md-2">
-                    <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
-                </div>
-                <div class="col-md-2">
-                    <select name="category_id[0]" class="form-select">
-                        <option value="" disabled selected>Select Category</option>
-                        {% for cat in categories.keys() %}
-                            <option value="{{ cat }}">{{ categories.get(cat).get('category_name') }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select mb-3 upload-selects" name="payment_method[0]" required>
-                        <option value="" disabled selected>Select Payment Method</option>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="spending-div" class="card mb-3">
+    <div class="card-body">
+        <h2>Upload Spending Transactions</h2>
+        <form action="/manual-entry-spending" method="post" enctype="multipart/form-data" id="manual_entry_spending_form">
+            <div id="spending-container">
+                <div class="spending-group row">
+                    <div class="col-md-2">
+                        <input class="form-control mb-3" type="date" name="transaction_date[0]">
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
+                    </div>
+                    <div class="col-md-2">
+                        <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category_id[0]" class="form-select">
+                            <option value="" disabled selected>Select Category</option>
+                            {% for cat in categories.keys() %}
+                                <option value="{{ cat }}">{{ categories.get(cat).get('category_name') }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select mb-3 upload-selects" name="payment_method[0]" required>
+                            <option value="" disabled selected>Select Payment Method</option>
 
-                        {% for method in payment_methods %}
-                        <option value="{{ method }}"> {{ method }}</option>
-                        {% endfor %}
-                    </select>
+                            {% for method in payment_methods %}
+                            <option value="{{ method }}"> {{ method }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="d-flex gap-2 mb-2">
-            <button type="button" onclick="addSpendingField()" class="btn btn-outline-success mb-3">+ Add Another</button>
-            <button type="button" onclick="removeLastSpendingField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
-        </div>
-        <div>
-            <button type="submit" class="btn btn-primary mb-3">Upload</button>
-        </div>
-        <input type="hidden" name="spending_num_entries" value="1" id="spending_num_entries">
-    </form>
+            
+            <div class="d-flex gap-2">
+                <button type="button" onclick="addSpendingField()" class="btn btn-outline-success mb-3">+ Add Another</button>
+                <button type="button" onclick="removeLastSpendingField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
+            <input type="hidden" name="spending_num_entries" value="1" id="spending_num_entries">
+        </form>
+    </div>
 </div>
 
-<div id="income-div">
-    <h2>Upload Income Transactions</h2>
-    <form action="/manual-entry-income" method="post" enctype="multipart/form-data" id="manual_entry_income_form">
-        <div id="income-container">
-            <div class="income-group row mb-3">
-                <div class="col-md-2">
-                    <input class="form-control mb-3" type="date" name="income_date[0]">
-                </div>
-                <div class="col-md-4">
-                    <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
-                </div>
-                <div class="col-md-2">
-                    <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
-                </div>
-            </div>
-        </div>
-        
-        <div class="d-flex gap-2 mb-2">
-            <button type="button" onclick="addIncomeField()" class="btn btn-outline-success mb-3">+ Add Another</button>
-            <button type="button" onclick="removeLastIncomeField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
-        </div>
-        <div>
-            <button type="submit" class="btn btn-primary mb-3">Upload</button>
-        </div>
-        <input type="hidden" name="income_num_entries" value="1" id="income_num_entries">
-    </form>
-</div>
-<div id="default-sinking-contributions">
-    <h2>Upload Default Sinking Fund Contributions</h2>
-    <div id="sinking-contributions-container">
-        <form action="/default-sinking-contributions" method="POST" enctype="multipart/form-data" id="default-sinking-contributions-form">
-            <div class="sinking-contributions-group row mb-3">
-                <div class="col-md-2">
-                    <input class="form-control mb-3" type="date" name="contribution_date">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary mb-3">Upload</button>
+<div id="income-div" class="card mb-3">
+    <div class="card-body">
+        <h2>Upload Income Transactions</h2>
+        <form action="/manual-entry-income" method="post" enctype="multipart/form-data" id="manual_entry_income_form">
+            <div id="income-container">
+                <div class="income-group row">
+                    <div class="col-md-2">
+                        <input class="form-control mb-3" type="date" name="income_date[0]">
+                    </div>
+                    <div class="col-md-6">
+                        <input class="form-control mb-3" type="text" placeholder="Description" name="description[0]">
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control mb-3" type="number" placeholder="Amount" name="amount[0]">
+                    </div>
                 </div>
             </div>
+            
+            <div class="d-flex gap-2 mb-2">
+                <button type="button" onclick="addIncomeField()" class="btn btn-outline-success">+ Add Another</button>
+                <button type="button" onclick="removeLastIncomeField()" class="btn btn-outline-danger">− Remove Last</button>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
+            <input type="hidden" name="income_num_entries" value="1" id="income_num_entries">
         </form>
     </div>
 </div>

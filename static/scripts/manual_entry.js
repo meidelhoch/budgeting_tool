@@ -7,7 +7,7 @@ function addSpendingField() {
   const methodOptionsHTML = document.getElementById("payment-method-options").innerHTML;
 
   const newGroup = document.createElement("div");
-  newGroup.className = "spending-group row mb-3";
+  newGroup.className = "spending-group row";
 
   newGroup.innerHTML = `
     <div class="col-md-2">
@@ -55,7 +55,7 @@ function addIncomeField() {
   const container = document.getElementById("income-container");
 
   const newGroup = document.createElement("div");
-  newGroup.className = "income-group row mb-3";
+  newGroup.className = "income-group row";
 
   newGroup.innerHTML = `
                 <div class="col-md-2">

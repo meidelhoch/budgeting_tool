@@ -14,8 +14,9 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE TABLE IF NOT EXISTS sinking_funds (
     id SERIAL PRIMARY KEY,
     fund_name TEXT UNIQUE NOT NULL, 
-    default_contribution NUMERIC NOT NULL,
+    default_contribution NUMERIC NUMERIC(10, 2) NOT NULL,
     contribution_category_id INTEGER REFERENCES budget_categories(id) ON DELETE SET NULL,
+    cap NUMERIC NUMERIC(10, 2) NOT NULL
 );
 
 CREATE TABLE sinking_fund_transactions (

@@ -30,7 +30,7 @@ def get_sinking_fund_values():
     return {}
 
 def get_fund_contributions():
-    query = "SELECT id, fund_name, default_contribution, contribution_category_id FROM sinking_funds"
+    query = "SELECT id, fund_name, default_contribution, contribution_category_id, cap FROM sinking_funds"
 
     df = execute_query_df(query)
 
@@ -40,11 +40,17 @@ def get_fund_contributions():
     print("No sinking fund contributions found in the database.")
     return {}
 
-def get_all_sinking_fund_transactions(month, year):
-    if month > 0:
-        query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
+def get_all_sinking_fund_transactions(month, year, fund_id):
+    if fund_id != 0:
+        if month > 0:
+            query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 AND t.fund_id = {fund_id} ORDER BY t.date DESC"
+        else:
+            query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 AND t.fund_id = {fund_id} ORDER BY t.date DESC"
     else:
-        query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
+        if month > 0:
+            query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(MONTH FROM t.date) = {month} AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
+        else:
+            query = f"SELECT date, description, -amount AS amount, fund_name FROM sinking_fund_transactions t JOIN sinking_funds s ON t.fund_id = s.id AND EXTRACT(YEAR FROM t.date) = {year} AND amount < 0 ORDER BY t.date DESC"
 
     df = execute_query_df(query)
 

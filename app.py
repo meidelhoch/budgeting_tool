@@ -134,12 +134,16 @@ def income():
  
 @app.route("/sinking-funds")
 def sinking_funds():
+    print(request.args)
     now = datetime.now()
     month = int(request.args.get("month", 0))
     year = int(request.args.get("year", now.year))
+    selected_fund = int(request.args.get("fund", 0))
     current_year = now.year
 
-    all_transactions = get_all_sinking_fund_transactions(month, year)
+    print(selected_fund)
+
+    all_transactions = get_all_sinking_fund_transactions(month, year, selected_fund)
 
     if not all_transactions.empty:
         return render_template("sinking_funds.html",
@@ -148,7 +152,9 @@ def sinking_funds():
                                current_year=current_year,
                                selected_month=month,
                                selected_year=year,
-                               months=MONTHS
+                               months=MONTHS,
+                               sinking_funds=SINKING_FUNDS,
+                               selected_fund=selected_fund
                                )
     return render_template("sinking_funds.html",
                            active_page="sinking_funds",
@@ -156,7 +162,9 @@ def sinking_funds():
                            current_year=current_year,
                            selected_month=month,
                            selected_year=year,
-                           months=MONTHS
+                           months=MONTHS,
+                           sinking_funds=SINKING_FUNDS,
+                           selected_fund=selected_fund
                            )
     
 
@@ -346,11 +354,17 @@ def manual_entry_income():
 def default_sinking_contributions():
     print(request.form)
     sinking_fund_dict = get_fund_contributions()
+    current_fund_values = get_sinking_fund_values()
+    print("Current fund values:", current_fund_values)
     print(sinking_fund_dict)
     transaction_rows = []
     sinking_fund_transaction_rows = []
     for fund in sinking_fund_dict.keys():
+        current_value = current_fund_values.get(fund).get("fund_value")
+        print(f"Current value for fund {fund}:", current_value)
         default_contribution = sinking_fund_dict.get(fund).get("default_contribution")
+        cap = sinking_fund_dict.get(fund).get("cap")
+        print(f"The cap for {fund}: {cap}")
         category_id = sinking_fund_dict.get(fund).get("contribution_category_id")
         fund_id = sinking_fund_dict.get(fund).get("id")
         new_transaction_row = {
@@ -371,7 +385,10 @@ def default_sinking_contributions():
             "amount": default_contribution
         }
 
-        sinking_fund_transaction_rows.append(new_sinking_fund_transaction_row)
+        if current_value >= cap:
+            print(f"Current value for {fund} is already at or above the cap. No contribution made.")
+        else:
+            sinking_fund_transaction_rows.append(new_sinking_fund_transaction_row)
 
     transaction_df = pd.DataFrame(transaction_rows)
     sinking_fund_transaction_df = pd.DataFrame(sinking_fund_transaction_rows)

@@ -3,37 +3,39 @@
 {% block title %}Upload Credit Card Statements{% endblock %}
 
 {% block content %}
-<body>
-    <h1>Upload Credit Card Statements</h1>
-  <div id="form-div">
-  <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
-    <div id="file-container">
-        <div class="upload-group row mb-3">
-            <div class="col-md-5">
-                <input class="form-control mb-3 upload-files" type="file" name="files" accept=".csv" required>
-            </div>
-            <div class="col-md-5">
-                <select class="form-select mb-3 upload-selects" name="labels" required>
-                    <option value="" disabled selected>Select Card</option>
-                    <option value="Delta">Delta</option>
-                    <option value="BlueCash">BlueCash</option>
-                    <option value="Apple">Apple</option>
-                    </select>
-            </div>
+<div class="card mb-3">
+    <div class="card-body">
+        <h1>Upload Credit Card Statements</h1>
+        <div id="form-div">
+            <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+                <div id="file-container">
+                    <div class="upload-group row">
+                        <div class="col-md-6">
+                            <input class="form-control upload-files mb-3" type="file" name="files" accept=".csv" required>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select upload-selects" name="labels" required>
+                                <option value="" disabled selected>Select Card</option>
+                                <option value="Delta">Delta</option>
+                                <option value="BlueCash">BlueCash</option>
+                                <option value="Apple">Apple</option>
+                                </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" onclick="addFileField()" class="btn btn-outline-success mb-3">+ Add Another</button>
+                    <button type="button" onclick="removeLastFileField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
         </div>
     </div>
-    
-    <div class="d-flex gap-2 mb-2">
-        <button type="button" onclick="addFileField()" class="btn btn-outline-success mb-3">+ Add Another</button>
-        <button type="button" onclick="removeLastFileField()" class="btn btn-outline-danger mb-3">− Remove Last</button>
-    </div>
-    <div>
-        <button type="submit" class="btn btn-primary mb-3">Upload</button>
-    </div>
-  </form>
-    </div>
+</div>
 
 <script src="{{ url_for('static', filename='scripts/upload.js') }}"></script>
-</body>
 {% endblock %}
 </html>

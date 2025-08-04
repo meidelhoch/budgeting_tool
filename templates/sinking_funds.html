@@ -22,6 +22,14 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div>
+                        <select class="form-select" name="fund" id="fund">
+                            <option value="0" selected>All Funds</option>
+                            {% for fund_id in sinking_funds.keys() %}
+                            <option value="{{ fund_id }}" {% if fund_id == selected_fund %}selected{% endif %}>{{ sinking_funds.get(fund_id).get('fund_name') }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </form>
 {% if transactions %}

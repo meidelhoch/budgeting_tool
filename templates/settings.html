@@ -3,8 +3,11 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-<h1>Settings</h1>
-<p>View and manage your settings data here.</p>
 
-<button class="btn btn-primary" onclick="location.href='/delete-all-data'">Clear Data</button>
+<div class="card">
+    <div class="card-body">
+        <h3>Click the button below to clear all transaction data:</h3>
+        <button class="btn btn-danger" onclick="location.href='/delete-all-data'">Clear Data</button>
+    </div>
+</div>
 {% endblock %}
