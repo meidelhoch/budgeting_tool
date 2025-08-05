@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Annual Summary{% endblock %}
+
+{% block content %}
+<form method="GET" action="/annual-summary" id="annual-summary-form">
+    <div class="d-flex align-items-end gap-3 mb-3">
+        <div>
+            <select class="form-select" name="year" id="year">
+                {% for y in range(2025, current_year + 1) %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</form>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            {{ bar_chart_html|safe }}
+        </div>
+    </div>
+
+
+<script src="{{ url_for('static', filename='scripts/annual_summary_script.js') }}"></script>
+{% endblock %}

@@ -1,13 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from csv_cleaning import clean_apple, clean_amex
 import pandas as pd
-import psycopg
+import plotly.express as px
 import os
 from datetime import datetime
 import calendar
 from dotenv import load_dotenv
 from db_management.datasource import delete_all_data_from_db
-from db_management.spending import save_transactions, get_all_transactions
+from db_management.spending import save_transactions, get_all_transactions, get_monthly_spending_by_category, get_daily_spending_by_category
 from db_management.sinking_funds import save_sinking_fund_transactions, get_funds_dict, get_sinking_fund_values, get_fund_contributions, get_all_sinking_fund_transactions
 from db_management.budget import get_categories_dict, get_monthly_spending
 from db_management.income import get_monthly_income, save_income_transactions, get_all_income_transactions
@@ -30,6 +30,9 @@ PAYMENT_METHODS = ["Venmo", "Cash", "Direct Deposit", "Transfer", "Delta", "Blue
 
 MONTHS = [(i, calendar.month_name[i]) for i in range(1, 13)]
 
+COLOR_MAP = {'Shopping': '#ffb374', 'Medical': '#b06464', 'Dining': '#ff9fc2', 'Transportation': '#fff895', 'Housing': '#b5fead', 'Wellness': '#69a864', 'Travel': '#A3E7F7', 'Grocery': '#5e9ef1', 'Entertainment': '#e9d1ff', 'Gifts': '#8a76b0', 'Other': '#b2b2b2'}
+
+
 app = Flask(__name__)
 
 @app.template_filter("money")
@@ -42,7 +45,7 @@ def money_format(value):
 
 @app.route("/")
 def home():
-    return render_template("home.html", active_page="home")
+    return redirect(url_for('budget'))
 
 @app.route("/budget")
 def budget():
@@ -114,7 +117,7 @@ def income():
     transactions = get_all_income_transactions(month, year)
 
     if not transactions.empty:
-        transactions.drop('id', axis=1, inplace=True)
+        transactions.drop('id', axis=1, inplace=True) #remove id column
         return render_template("income.html",
                                active_page="income",
                                transactions=transactions.to_dict(orient='records'),
@@ -169,10 +172,111 @@ def sinking_funds():
     
 
 
-@app.route("/summary")
-def summary():
-    return render_template("summary.html", active_page="summary")
+@app.route("/monthly-summary")
+def monthly_summary():
+    now = datetime.now()
+    month = int(request.args.get("month", now.month - 1 if now.month > 1 else 12))  # Default to last month, but if January, go to December
+    year = int(request.args.get("year", now.year))
+    current_year = now.year
 
+    monthly_spending_by_category = get_monthly_spending(month, year)
+    monthly_spending_by_category_df = pd.DataFrame.from_dict(monthly_spending_by_category, orient='index')
+    monthly_spending_by_category_df.index.name = 'Category'
+    monthly_spending_by_category_df.reset_index(inplace=True)
+    monthly_spending_by_category_df['percent_of_budget'] = (monthly_spending_by_category_df['total_spent'] / monthly_spending_by_category_df['monthly_budget']) * 100
+    print(monthly_spending_by_category_df)
+
+    donut_chart = px.pie(monthly_spending_by_category_df, 
+                         names='Category',
+                         values='total_spent',
+                         color='Category',
+                         color_discrete_map=COLOR_MAP,
+                         custom_data=['percent_of_budget', 'monthly_budget'],
+                         hole=0.4)
+
+    donut_chart.update_traces(
+        hovertemplate='You have spent $%{value} on %{label} <br> That is %{customdata[0][0]:.1f}% of your budgeted $%{customdata[0][1]} and %{percent} of your total spending <extra></extra>',
+        texttemplate='%{label}: $%{value}',  # what shows on the chart
+        textposition='inside',      # can also be 'outside'
+        textfont=dict(size=12),
+    )
+
+    donut_chart.update_layout(
+        width=425,       # increase width (default ~450)
+        height=450,      # increase height
+        margin=dict(t=40, b=0, l=0, r=0),  # optional: adjust margins
+        showlegend = False,
+    )
+    
+
+    # Embed the chart
+    donut_chart_html = donut_chart.to_html(full_html=False)
+
+    daily_spending_by_category = get_daily_spending_by_category(month, year)
+    daily_spending_by_category['date'] = pd.to_datetime({'year': year, 'month': month, 'day': daily_spending_by_category['day']})
+    daily_spending_by_category = daily_spending_by_category.drop(columns=['day'])
+
+    print(daily_spending_by_category)
+
+    bar_chart = px.bar(
+            daily_spending_by_category,
+            x='date',
+            y='total_spent',
+            color='category',
+            color_discrete_map=COLOR_MAP,
+            labels={'date': 'Date', 'total_spent': 'Total Spent', 'category': 'Category'},
+        )
+
+    bar_chart.update_layout(
+        xaxis=dict(tickformat='%b %d', dtick="D2", tickangle=45),  # format date ticks
+        yaxis=dict(title='Amount ($)', tickformat='$,'),  # format y-axis as currency
+        height=500,
+        width=900,
+    )
+
+    bar_chart_html = bar_chart.to_html(full_html=False)
+
+    return render_template("monthly_summary.html",
+                               active_page="monthly_summary",
+                               categories=CATEGORIES,
+                               donut_chart_html=donut_chart_html,
+                               bar_chart_html=bar_chart_html,
+                               current_year=current_year,
+                               selected_month=month,
+                               selected_year=year,
+                               months=MONTHS
+                               )
+
+
+@app.route("/annual-summary")
+def annual_summary():
+    now = datetime.now()
+    year = int(request.args.get("year", now.year))
+    current_year = now.year
+
+    monthly_spending_by_category = get_monthly_spending_by_category(year)
+    monthly_spending_by_category['month_cat'] = monthly_spending_by_category['month'].apply(lambda x: calendar.month_abbr[int(x)])
+
+    bar_chart = px.bar(
+        monthly_spending_by_category,
+        x='month_cat',           # x-axis: month or date
+        y='total_spent',     # y-axis: amount spent
+        color='category',    # stack by category
+        color_discrete_map=COLOR_MAP,
+        title='Monthly Spending by Category (Stacked Area)',
+        labels={'month': 'Month', 'total_spent': 'Total Spent', 'category': 'Category'}
+    )
+
+    bar_chart.update_layout(
+        xaxis=dict(tickformat="%b %Y"),  # format month as Jan 2025, etc.
+        yaxis_title='Spending ($)',
+        legend_title_text='Category',
+        height=500,
+        width=800,
+    )
+
+    bar_chart_html = bar_chart.to_html(full_html=False)
+    return render_template("annual_summary.html", active_page="annual_summary", year=year, current_year=current_year, bar_chart_html=bar_chart_html)
 
 @app.route("/upload-statements")
 def upload_statements():

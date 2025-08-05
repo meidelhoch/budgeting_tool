@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Summary{% endblock %}
+
+{% block content %}
+<form method="GET" action="/monthly-summary" id="monthly-summary-form">
+    <div class="d-flex align-items-end gap-3 mb-3">
+        <div>
+            <select class="form-select" name="month" id="month">
+                {% for num, name in months %}
+                <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <select class="form-select" name="year" id="year">
+                {% for y in range(2025, current_year + 1) %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</form>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      {{ donut_chart_html|safe }}
+    </div>
+    <div class="col-md-8">
+      {{ bar_chart_html|safe }}
+      <p>* Note: This chart does not include rent payments or sinking fund contributions. It is just to show variable daily spending.</p>
+    </div>
+  </div>
+</div> 
+
+<script src="{{ url_for('static', filename='scripts/monthly_summary_script.js') }}"></script>
+{% endblock %}
